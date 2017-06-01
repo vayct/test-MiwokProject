@@ -1,22 +1,29 @@
 package com.example.android.miwok;
 
+
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
-import static android.media.CamcorderProfile.get;
+/**
+ * A simple {@link Fragment} subclass.
+ */
+public class NumberFragment extends Fragment {
 
-public class NumberActivity extends AppCompatActivity {
 
     private MediaPlayer mMediaPlayer;
+
+    private AudioManager mAudioManager;
 
     private MediaPlayer.OnCompletionListener mCompletionListener =
             new MediaPlayer.OnCompletionListener() {
@@ -45,15 +52,32 @@ public class NumberActivity extends AppCompatActivity {
             };
 
 
-    private AudioManager mAudioManager;
+
+
+    private void releaseMediaPlayer() {
+        if (mMediaPlayer != null) {
+            mMediaPlayer.release();
+            mMediaPlayer = null;
+
+            //release audio focus when not needed
+            mAudioManager.abandonAudioFocus(afChangeListener);
+        }
+    }
+
+    public NumberFragment() {
+        // Required empty public constructor
+    }
 
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.word_list);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
 
-        mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        View rootView = inflater.inflate(R.layout.word_list , container , false);
+
+
+
+        mAudioManager = (AudioManager) getActivity().getSystemService(Context.AUDIO_SERVICE);
 
 
         final ArrayList<Word> words = new ArrayList<Word>();
@@ -70,9 +94,9 @@ public class NumberActivity extends AppCompatActivity {
 
 
         WordAdapter numbersAdapter =
-                new WordAdapter(this, words, R.color.category_numbers);
+                new WordAdapter(getActivity(), words, R.color.category_numbers);
 
-        ListView listView = (ListView) findViewById(R.id.list);
+        ListView listView = (ListView) rootView.findViewById(R.id.list);
 
         listView.setAdapter(numbersAdapter);
 
@@ -87,7 +111,7 @@ public class NumberActivity extends AppCompatActivity {
                 //have audio focus
                 if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
 
-                    mMediaPlayer = MediaPlayer.create(NumberActivity.this, word.getSoundResourceId());
+                    mMediaPlayer = MediaPlayer.create(getActivity(), word.getSoundResourceId());
                     mMediaPlayer.start();
                     mMediaPlayer.setOnCompletionListener(mCompletionListener);
                 }
@@ -95,23 +119,13 @@ public class NumberActivity extends AppCompatActivity {
             }
         });
 
-
-    }
-
-    private void releaseMediaPlayer() {
-        if (mMediaPlayer != null) {
-            mMediaPlayer.release();
-            mMediaPlayer = null;
-
-            //release audio focus when not needed
-            mAudioManager.abandonAudioFocus(afChangeListener);
-        }
+        return rootView;
     }
 
     @Override
-    protected void onStop() {
+    public void onStop() {
         super.onStop();
-        releaseMediaPlayer();
 
+        releaseMediaPlayer();
     }
 }

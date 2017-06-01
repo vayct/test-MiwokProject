@@ -1,26 +1,36 @@
 package com.example.android.miwok;
 
+
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
-public class PhrasesActivity extends AppCompatActivity {
+/**
+ * A simple {@link Fragment} subclass.
+ */
+public class PhrasesFragment extends Fragment {
 
     private MediaPlayer mMediaPlayer;
 
-    private MediaPlayer.OnCompletionListener mCompletionListener = new MediaPlayer.OnCompletionListener() {
-        @Override
-        public void onCompletion(MediaPlayer mediaPlayer) {
-            releaseMediaPlayer();
-        }
-    };
+    private AudioManager mAudioManager;
+
+    private MediaPlayer.OnCompletionListener mCompletionListener =
+            new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mediaPlayer) {
+                    releaseMediaPlayer();
+                }
+            };
 
     private AudioManager.OnAudioFocusChangeListener afChangeListener =
             new AudioManager.OnAudioFocusChangeListener() {
@@ -41,14 +51,32 @@ public class PhrasesActivity extends AppCompatActivity {
             };
 
 
-    private AudioManager mAudioManager;
+
+
+    private void releaseMediaPlayer() {
+        if (mMediaPlayer != null) {
+            mMediaPlayer.release();
+            mMediaPlayer = null;
+
+            //release audio focus when not needed
+            mAudioManager.abandonAudioFocus(afChangeListener);
+        }
+    }
+
+    public PhrasesFragment() {
+        // Required empty public constructor
+    }
+
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.word_list);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
 
-        mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        View rootView = inflater.inflate(R.layout.word_list , container, false);
+
+
+
+        mAudioManager = (AudioManager) getActivity().getSystemService(Context.AUDIO_SERVICE);
 
 
         final ArrayList<Word> words = new ArrayList<Word>();
@@ -66,9 +94,9 @@ public class PhrasesActivity extends AppCompatActivity {
 
 
         WordAdapter numbersAdapter =
-                new WordAdapter(this, words, R.color.category_phrases);
+                new WordAdapter(getActivity(), words, R.color.category_phrases);
 
-        ListView listView = (ListView) findViewById(R.id.list);
+        ListView listView = (ListView) rootView.findViewById(R.id.list);
 
         listView.setAdapter(numbersAdapter);
 
@@ -84,28 +112,22 @@ public class PhrasesActivity extends AppCompatActivity {
                 if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
 
 
-                    mMediaPlayer = MediaPlayer.create(PhrasesActivity.this, word.getSoundResourceId());
+                    mMediaPlayer = MediaPlayer.create(getActivity(), word.getSoundResourceId());
                     mMediaPlayer.start();
                     mMediaPlayer.setOnCompletionListener(mCompletionListener);
                 }
 
             }
         });
-    }
 
-    private void releaseMediaPlayer(){
-        if(mMediaPlayer != null) {
-
-            mMediaPlayer.release();
-            mMediaPlayer = null;
-            mAudioManager.abandonAudioFocus(afChangeListener);
-        }
+        return rootView;
     }
 
 
     @Override
-    protected void onStop() {
+    public void onStop() {
         super.onStop();
+
         releaseMediaPlayer();
     }
 }
