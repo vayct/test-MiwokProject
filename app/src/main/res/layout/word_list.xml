@@ -6,6 +6,9 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:id="@+id/list"
-    tools:context="com.example.android.miwok.NumberActivity">
+    tools:context="com.example.android.miwok.NumberActivity"
+    android:drawSelectorOnTop="true" >
+    <!--show pressed state when click-->
+
 
 </ListView>
